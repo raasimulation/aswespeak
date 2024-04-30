@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>as we speak</title>
+    <script src="https://tonejs.github.io/build/Tone.js"></script>
+    <style>
+        body {
+            background-color: #fff;
+            color: #000;
+        }
+
+        @keyframes revealText {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        #display {
+            font-size: 64px;
+            font-family: Arial, Helvetica, sans-serif;
+            overflow-wrap: break-word;
+        }
+
+        .key {
+            display: inline-block;
+            animation: revealText 0.3s ease-in-out;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="display"></div>
+    <script>
+        // Initialize Tone.js
+        Tone.start();
+
+        // Define note sequences and harmonization intervals
+        const noteSequences = [
+         //    ["D3", "C3", "G3", "E3", "C3", "E3", "G3", "A3", "E3", "D3", "C3", "E3", "D3", "C3"],
+         //    ['G2', 'F2', 'D2', 'C2', 'B2', 'F2', 'G2', 'A2', 'D#2'],
+          //   ['C4', 'D3', 'E#4', 'F3', 'G3', 'A4', 'B#4']
+            ['B#3', 'E#3', 'G3', 'F3', 'E3','F3', 'A3', 'B#3', 'G3', 'F3', 'E3']
+            // ['A2', 'B2', 'C#2', 'G#2', 'A#2','D2', 'E2', 'F#2' ]
+        ];
+        const harmonizationIntervals = [0,3,5,7,9];
+        const backgroundColors = ['#ffcccc', '#ccffcc', '#ccccff', '#ac3a7d', '#acb87a'];
+        const textColors = ['#ffffff', '#000000', '#f2f2f2'];
+        const synth = new Tone.Synth().toDestination();
+        const synthSustain = new Tone.Synth().toDestination();
+        let displayedText = '';
+        let charCount = 0;
+        let index = 0;
+        let lastKeyPressTime = 0;
+
+        function playSustainedNotes() {
+            const sustainedNotes = ['G3', 'F3', 'D3', 'G3', 'C3', 'D3', 'C3', 'D3', 'E3', 'F3', 'G3', 'A3', 'B3'];
+            // const sustainedNotes = ['E3', 'F3', 'G#3', 'A3', 'B3', 'C3', 'D#3', 'E3'];
+            let sustainIndex = 1;
+
+            // Function to change the sustained note every 5 seconds
+            const intervalId = setInterval(() => {
+                const note = sustainedNotes[sustainIndex % sustainedNotes.length];
+                const mainNote = new Tone.Frequency(note).toNote();
+                const harmonizedNotes = harmonizationIntervals.map(interval => Tone.Frequency(mainNote).transpose(interval).toNote());
+                harmonizedNotes.forEach(harmonizedNote => {
+                    synthSustain.triggerAttackRelease(harmonizedNote, '5s');
+                });
+                sustainIndex++;
+            }, 3000); // 5 seconds interval
+        }
+        playSustainedNotes();
+        // Function to play a note and update the displayed text
+        function playNoteAndDisplay(note, key) {
+            const mainNote = new Tone.Frequency(note).toNote();
+            const harmonizedNotes = harmonizationIntervals.map(interval => Tone.Frequency(mainNote).transpose(interval).toNote());
+            harmonizedNotes.forEach(harmonizedNote => {
+                synth.triggerAttackRelease(harmonizedNote, '8n');
+            });
+
+            displayedText += key;
+            document.getElementById('display').innerText = displayedText;
+        }
+
+        // Function to update colors
+        function updateColors() {
+            const randomIndex = Math.floor(Math.random() * backgroundColors.length);
+            document.body.style.backgroundColor = backgroundColors[randomIndex];
+            document.getElementById('display').style.backgroundColor = backgroundColors[randomIndex];
+            document.getElementById('display').style.color = textColors[randomIndex];
+        }
+
+        // Function to select a random note sequence
+        function getRandomNoteSequence() {
+            const randomIndex = Math.floor(Math.random() * noteSequences.length);
+            return noteSequences[randomIndex];
+        }
+
+        // Initialize Tone.js with a random note sequence
+        const notes = getRandomNoteSequence();
+
+        // Event listener for key presses
+        document.addEventListener('keydown', (event) => {
+            const { key } = event;
+            const now = new Date().getTime();
+            if (now - lastKeyPressTime < 20) {
+                return; // Ignore repeated key presses within 100ms
+            }
+            lastKeyPressTime = now;
+
+            if (/^[a-zA-Z]$/.test(key)) { // Check if the pressed key is a letter
+                const note = notes[charCount % notes.length]; // Get the next note in the sequence
+                playNoteAndDisplay(note, key);
+                charCount++;
+
+                // Change colors after 25 characters
+                if (charCount % 25 === 0) {
+                    updateColors();
+                }
+            }
+        });
+
+    </script>
+</body>
+
+</html>
