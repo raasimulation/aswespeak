@@ -57,6 +57,7 @@
         const textColors = ['#ffffff', '#000000', '#f2f2f2'];
 
         const synth = new Tone.Synth().toDestination();
+        const synthSustain = new Tone.Synth().toDestination(); // Synth for sustained background tones
         let charCount = 0;
 
         // Function to play a note and update the displayed text with fade-in effect
@@ -77,6 +78,28 @@
             document.getElementById('display').style.backgroundColor = backgroundColors[randomIndex];
             document.getElementById('display').style.color = textColors[randomIndex];
         }
+
+        // Function to play sustained background tones/chords
+        function playSustainedNotes() {
+            const sustainedNotes = ['C3', 'G3', 'C4', 'E4', 'F3', 'A3', 'D4']; // Chord progression (thockier tones)
+            let sustainIndex = 0;
+
+            // Function to change the sustained note every 5 seconds
+            setInterval(() => {
+                const note = sustainedNotes[sustainIndex % sustainedNotes.length];
+                const harmonizedNotes = [0, 3, 7].map(interval => Tone.Frequency(note).transpose(interval).toNote()); // Triad (chord)
+
+                // Play the chord
+                harmonizedNotes.forEach(harmonizedNote => {
+                    synthSustain.triggerAttackRelease(harmonizedNote, '4s');
+                });
+
+                sustainIndex++;
+            }, 5000); // 5 seconds interval for changing the chord
+        }
+
+        // Start the sustained chord progression
+        playSustainedNotes();
 
         // Event listener for key presses
         document.addEventListener('keydown', (event) => {
