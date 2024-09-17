@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>as we speak</title>
+    <script src="https://tonejs.github.io/build/Tone.js"></script>
+    <style>
+        body {
+            background-color: #fff;
+            color: #000;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        #display {
+            font-size: 64px;
+            font-family: Arial, Helvetica, sans-serif;
+            overflow-wrap: break-word;
+            white-space: pre-wrap; /* Ensure spaces are visible */
+        }
+
+        .fade-in {
+            display: inline-block;
+            opacity: 0;
+            animation: fadeIn 1s forwards; /* Fade in over 1 second */
+        }
+    </style>
+</head>
+
+<body>
+    <div id="display"></div>
+    <script>
+        // Initialize Tone.js
+        document.body.addEventListener('click', () => {
+            Tone.start();  // Start Tone.js on user interaction
+        });
+
+        // Define a map of letters and common symbols to musical notes (Lowered 1 octave, C Major)
+        const letterToNote = {
+            'A': 'C3', 'B': 'D3', 'C': 'E3', 'D': 'F3', 'E': 'G3', 'F': 'A3', 'G': 'B3',
+            'H': 'C4', 'I': 'D4', 'J': 'E4', 'K': 'F4', 'L': 'G4', 'M': 'A4', 'N': 'B4',
+            'O': 'C3', 'P': 'D3', 'Q': 'E3', 'R': 'F3', 'S': 'G3', 'T': 'A3', 'U': 'B3',
+            'V': 'C4', 'W': 'D4', 'X': 'E4', 'Y': 'F4', 'Z': 'G4',
+            ' ': 'C2', ',': 'D2', '.': 'E2', '!': 'F2', '?': 'G2' // Lower tones for special characters
+        };
+
+        const backgroundColors = ['#ffcccc', '#ccffcc', '#ccccff', '#ac3a7d', '#acb87a'];
+        const textColors = ['#ffffff', '#000000', '#f2f2f2'];
+
+        const synth = new Tone.Synth().toDestination();
+        let charCount = 0;
+
+        // Function to play a note and update the displayed text with fade-in effect
+        function playNoteAndDisplay(note, key) {
+            synth.triggerAttackRelease(note, '8n'); // Play the note for 8th-note duration
+
+            // Create a new span for the letter or space
+            const letterSpan = document.createElement('span');
+            letterSpan.textContent = key === ' ' ? '\u00A0' : key; // Handle space by using a non-breaking space
+            letterSpan.classList.add('fade-in'); // Add the fade-in class
+            document.getElementById('display').appendChild(letterSpan); // Append the span to the display
+        }
+
+        // Function to update colors
+        function updateColors() {
+            const randomIndex = Math.floor(Math.random() * backgroundColors.length);
+            document.body.style.backgroundColor = backgroundColors[randomIndex];
+            document.getElementById('display').style.backgroundColor = backgroundColors[randomIndex];
+            document.getElementById('display').style.color = textColors[randomIndex];
+        }
+
+        // Event listener for key presses
+        document.addEventListener('keydown', (event) => {
+            const { key } = event;
+            const upperKey = key.toUpperCase();
+
+            if (letterToNote.hasOwnProperty(upperKey)) { // Handle letters and common symbols
+                const note = letterToNote[upperKey]; // Get the corresponding note for the character
+                playNoteAndDisplay(note, key);
+                charCount++;
+
+                // Change colors after 25 characters
+                if (charCount % 25 === 0) {
+                    updateColors();
+                }
+            }
+        });
+
+    </script>
+</body>
+
+</html>

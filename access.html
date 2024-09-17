@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>access</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body,
+        html {
+            height: 100%;
+            font-family: Arial, sans-serif;
+            background-color: black;
+        }
+
+        #slideshow {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        #slide {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: cover;
+            transition: opacity 1s ease-in-out;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="slideshow">
+        <img id="slide" src="image1.jpg" alt="Slideshow Image">
+    </div>
+    <script>
+        const images = [
+            { src: 'image1.jpg', duration: 7500 },  // 5 seconds
+            { src: 'image0.jpg', duration: 7500 },  // 5 seconds
+            { src: 'image2.jpg', duration: 7500 },  // 5 seconds
+            { src: 'image3.jpg', duration: 7500 },  // 5 seconds
+            { src: 'image4.jpg', duration: 7500 },  // 5 seconds
+            { src: 'image5.jpg', duration: 7500 },  // 5 seconds
+            { src: 'image6.jpg', duration: 7500 },  // 5 seconds
+            { src: 'image7.jpg', duration: 7500 },  // 5 seconds
+            { src: 'image8.jpg', duration: 7500 },  // 5 seconds
+            { src: 'image9.jpg', duration: 7500 },  // 5 seconds
+            { src: 'image10.jpg', duration: 7500 },  // 5 seconds
+            { src: 'image11.jpg', duration: 7500 }  // 5 seconds
+        ];
+
+        let currentImage = 0;
+
+        function changeImage() {
+            const slide = document.getElementById('slide');
+
+            // Set the new image source
+            slide.src = images[currentImage].src;
+
+            // Get the duration for the current image
+            const currentDuration = images[currentImage].duration;
+
+            // Update to the next image
+            currentImage = (currentImage + 1) % images.length;
+
+            // Set the next change after the current duration
+            setTimeout(changeImage, currentDuration);
+        }
+
+        // Start the slideshow after the duration of the first image
+        setTimeout(changeImage, images[0].duration);
+
+    </script>
+</body>
+
+</html>
