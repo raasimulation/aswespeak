@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>021U</title>
+    <script src="https://tonejs.github.io/build/Tone.js"></script>
+    <style>
+        body {
+            background-color: #fff;
+            color: #000;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        #display {
+            font-size: 64px;
+            font-family: Arial, Helvetica, sans-serif;
+            overflow-wrap: break-word;
+            white-space: pre-wrap;
+            /* Ensure spaces are visible */
+        }
+
+        .fade-in {
+            display: inline-block;
+            opacity: 0;
+            animation: fadeIn 0.45s forwards;
+            /* Fade in over 1 second */
+        }
+    </style>
+</head>
+
+<body>
+    <div id="display"></div>
+    <script>
+        // Initialize Tone.js
+        document.body.addEventListener('click', () => {
+            Tone.start();  // Start Tone.js on user interaction
+        });
+    
+        // Define a map of letters and common symbols to musical notes (Lowered 1 octave, C Major)
+        const letterToNote = {
+            'A': 'C3', 'B': 'D3', 'C': 'E3', 'D': 'F3', 'E': 'G3', 'F': 'A3', 'G': 'B3',
+            'H': 'C4', 'I': 'D4', 'J': 'E4', 'K': 'F4', 'L': 'G4', 'M': 'A4', 'N': 'B4',
+            'O': 'C3', 'P': 'D3', 'Q': 'E3', 'R': 'F3', 'S': 'G3', 'T': 'A3', 'U': 'B3',
+            'V': 'C4', 'W': 'D4', 'X': 'E4', 'Y': 'F4', 'Z': 'G4',
+            ' ': 'C2', ',': 'D2', '.': 'E2', '!': 'F2', '?': 'G2' // Lower tones for special characters
+        };
+    
+        const backgroundColors = ['#ffe2d5', '#ffd3c1', '#ffc4ac', '#ffb697', '#ffa782', '#ff986d', '#ff8959', '#ff7b44', '#ff6c2f'];
+        const textColors = ['#ffffff', '#000000', '#f2f2f2'];
+    
+        // Create reverb and delay effects
+        const reverb = new Tone.Reverb({ decay: 4, wet: 0.5 }).toDestination();
+        const delay = new Tone.FeedbackDelay({ delayTime: 0.5, feedback: 0.4, wet: 0.3 }).toDestination();
+
+        
+    
+        // Synth for key presses (with effects)
+        const synth = new Tone.Synth().connect(delay).connect(reverb);
+    
+        // Synth for sustained background tones (with effects)
+        const synthSustain = new Tone.Synth().connect(delay).connect(reverb);
+    
+        let charCount = 0;
+    
+        // Function to play a note and update the displayed text with fade-in effect
+        function playNoteAndDisplay(note, key) {
+            synth.triggerAttackRelease(note, '8n'); // Play the note for 8th-note duration
+    
+            // Create a new span for the letter or space
+            const letterSpan = document.createElement('span');
+            letterSpan.textContent = key === ' ' ? '\u00A0' : key; // Handle space by using a non-breaking space
+            letterSpan.classList.add('fade-in'); // Add the fade-in class
+            document.getElementById('display').appendChild(letterSpan); // Append the span to the display
+        }
+    
+        // Function to interpolate between two colors
+        function interpolateColor(color1, color2, factor) {
+            const c1 = parseInt(color1.slice(1), 16);
+            const c2 = parseInt(color2.slice(1), 16);
+    
+            const r1 = (c1 >> 16) & 0xff;
+            const g1 = (c1 >> 8) & 0xff;
+            const b1 = c1 & 0xff;
+    
+            const r2 = (c2 >> 16) & 0xff;
+            const g2 = (c2 >> 8) & 0xff;
+            const b2 = c2 & 0xff;
+    
+            const r = Math.round(r1 + factor * (r2 - r1));
+            const g = Math.round(g1 + factor * (g2 - g1));
+            const b = Math.round(b1 + factor * (b2 - b1));
+    
+            return `rgb(${r}, ${g}, ${b})`;
+        }
+    
+        // Function to gradually change background color
+        function startBackgroundColorTransition(duration) {
+            const totalSteps = 100; // Number of steps for the transition
+            const stepDuration = duration / totalSteps; // Duration of each step
+            let currentStep = 0;
+    
+            const interval = setInterval(() => {
+                const factor = currentStep / totalSteps;
+                const colorIndex = Math.floor(factor * (backgroundColors.length - 1));
+                const nextColorIndex = Math.min(colorIndex + 1, backgroundColors.length - 1);
+    
+                const color = interpolateColor(
+                    backgroundColors[colorIndex],
+                    backgroundColors[nextColorIndex],
+                    (factor * (backgroundColors.length - 1)) % 1
+                );
+    
+                document.body.style.backgroundColor = color;
+                document.getElementById('display').style.backgroundColor = color;
+    
+                currentStep++;
+                if (currentStep > totalSteps) {
+                    clearInterval(interval);
+                }
+            }, stepDuration);
+        }
+    
+        // Start the background color transition over 60 seconds
+        startBackgroundColorTransition(180000);
+    
+        // Function to play sustained background tones/chords
+        function playSustainedNotes() {
+            const sustainedNotes = ['C3', 'G3', 'C4', 'E4', 'F3', 'A3', 'D4']; // Chord progression (thockier tones)
+            let sustainIndex = 0;
+    
+            // Function to change the sustained note every 5 seconds
+            setInterval(() => {
+                const note = sustainedNotes[sustainIndex % sustainedNotes.length];
+                const harmonizedNotes = [0, 3, 7].map(interval => Tone.Frequency(note).transpose(interval).toNote()); // Triad (chord)
+    
+                // Play the chord with effects
+                harmonizedNotes.forEach(harmonizedNote => {
+                    synthSustain.triggerAttackRelease(harmonizedNote, '4s');
+                });
+    
+                sustainIndex++;
+            }, 5000); // 5 seconds interval for changing the chord
+        }
+    
+        // Start the sustained chord progression
+        playSustainedNotes();
+    
+        // Event listener for key presses
+        document.addEventListener('keydown', (event) => {
+            const { key } = event;
+            const upperKey = key.toUpperCase();
+    
+            if (letterToNote.hasOwnProperty(upperKey)) { // Handle letters and common symbols
+                const note = letterToNote[upperKey]; // Get the corresponding note for the character
+                playNoteAndDisplay(note, key);
+                charCount++;
+    
+                // Change colors after 25 characters
+                if (charCount % 25 === 0) {
+                    updateColors();
+                }
+            }
+        });
+    
+    </script>
+    
+</body>
+
+</html>
